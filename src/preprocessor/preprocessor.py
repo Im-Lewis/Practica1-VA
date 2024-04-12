@@ -39,3 +39,9 @@ class Preprocessor:
             gray_images.append(equ_image)
 
         return gray_images
+    
+    def convert_bgt_to_hsv(self, image):
+        return cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    
+    def convert_hsv_to_bgr(self, image):
+        return cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
