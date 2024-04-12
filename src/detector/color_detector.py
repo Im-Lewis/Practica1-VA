@@ -13,12 +13,18 @@ class ColorDetector(Detector):
         self.lower_blue_limit = [110, 200, 50]
         self.upper_blue_limit = [130, 255, 255]
         
-        self.ideal_mask = np.ones((40, 80), dtype=np.float32)
+        self.mask = np.ones((40, 80), dtype=np.float32)
 
     def show_ideal_mask(self):
-        plt.imshow(self.ideal_mask, cmap='gray')
+        plt.imshow(self.mask, cmap='gray')
         plt.title('Máscara Ideal')
         plt.show()
 
-    def filter(self, image):
+    # TODO: Cut zones looking the coord(x, y) 
+    def cut_detected_zones(self, image):
+        detected_subimages = []
+        None
+
+    # TODO: Get the resulted mask
+    def apply_blue_filter(self, image):
         None
