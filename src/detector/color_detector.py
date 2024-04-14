@@ -10,8 +10,8 @@ class ColorDetector(Detector):
     def __init__(self):
         super().__init__()
         
-        self.lower_blue_limit = [110, 200, 50]
-        self.upper_blue_limit = [130, 255, 255]
+        self.lower_blue_limit = np.array([105, 150, 20])
+        self.upper_blue_limit = np.array([130, 255, 255])
         
         self.mask = np.ones((40, 80), dtype=np.float32)
 
@@ -19,12 +19,29 @@ class ColorDetector(Detector):
         plt.imshow(self.mask, cmap='gray')
         plt.title('Máscara Ideal')
         plt.show()
-
-    # TODO: Cut zones looking the coord(x, y) 
-    def cut_detected_zones(self, image):
+    
+    def cut_zone(self, image, coord):
+        #im = cv2.imread('./imagenesTest/00003.png')
+        [y, x, h, w] = coord
+        im = image[y:h, x:w]
+        resized_image = cv2.resize(im, (80,40))
+        return resized_image
+    
+    def cut_detected_zone(self, image, coords):
         detected_subimages = []
-        None
+        for coord in coords:
+            im = self.cut_zone(image, coord)
+            detected_subimages.append(im)
+        return detected_subimages
 
     # TODO: Get the resulted mask
-    def apply_blue_filter(self, image):
-        None
+    def apply_blue_filter(self, imagenes):
+        for image in imagenes:
+            plt.subplot(2,1,1)
+            plt.imshow(image[:,:,::-1])
+    
+            img = self.preprocessor.convert_bgr_to_hsv(image)
+            mask = cv2.inRange(img, self.lower_blue_limit, self.upper_blue_limit)
+            plt.subplot(2,1,2)
+            plt.imshow(self.preprocessor.convert_bg_to_rgb(mask)/255)
+            plt.show()

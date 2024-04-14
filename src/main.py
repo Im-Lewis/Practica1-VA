@@ -1,3 +1,5 @@
+import cv2
+from matplotlib import pyplot as plt
 from preprocessor.preprocessor import Preprocessor
 from detector.color_detector import ColorDetector
 
@@ -15,9 +17,12 @@ def image_upload():
     
 def detection_with_correlation_masks():
     color_detector.show_ideal_mask()
-    color_detector.cut_detected_zones(None)
-    color_detector.apply_blue_filter(None)
+    # TODO: CONSEGUIR COORDENADAS MSER...
+    im = cv2.imread('./imagenesTest/00003.png')
+    detected = color_detector.cut_detected_zone(im, [[400,1300,570, 1570]])                                         
+    color_detector.apply_blue_filter(detected)
 
 if __name__ == "__main__":    
-    image_upload()
-    detection_with_correlation_masks()
+    # image_upload()
+    #detection_with_correlation_masks()
+    None
