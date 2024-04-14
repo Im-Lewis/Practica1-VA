@@ -17,12 +17,17 @@ def image_upload():
     
 def detection_with_correlation_masks():
     color_detector.show_ideal_mask()
-    # TODO: CONSEGUIR COORDENADAS MSER...
-    im = cv2.imread('./imagenesTest/00003.png')
-    detected = color_detector.cut_detected_zone(im, [[400,1300,570, 1570]])                                         
-    color_detector.apply_blue_filter(detected)
+    #######################################################
+    # vvvv Mocke vvvvv
+    # TODO: CONSEGUIR COORDENADAS MSER 
+    imagenes = [cv2.imread('./imagenesTest/00003.png')] 
+    coords = None
+    #######################################################
+    # Descomentar esta lineas cuando se tengas las coords
+    # detected_zones = preprocessor.cut_detected_zones(imagen_list, coords)
+    detected_zones = preprocessor.cut_detected_zones(imagenes)                                         
+    masks = color_detector.apply_blue_filter(detected_zones)
 
 if __name__ == "__main__":    
-    # image_upload()
-    #detection_with_correlation_masks()
-    None
+    image_upload()
+    detection_with_correlation_masks()
