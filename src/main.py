@@ -54,6 +54,8 @@ def detection_with_correlation_masks(coords_list):
     #              Lista principal hace referencia a la imagen entera
     #              Lista interna a los subpaneles encontrados en la imagen entera
     score_list = color_detector.all_correlation(masks_per_image, coords_list)
+    
+    # score_list = [[(cord, score)]] = [[((x, y, w, h), score)]]
     return score_list
 if __name__ == "__main__":    
     
