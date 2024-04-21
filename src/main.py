@@ -25,11 +25,11 @@ def mser_detection():
     global gray_images
     
     # Llamamos a mser para detectar las regiones de cada imagen 
-    regiones, mascaras, regiones_dibujadas = mser_detector.mser(imagen_list, gray_images)
+    list_images_with_regions, regiones = mser_detector.mser(imagen_list, gray_images)
     # Dibujamos un rectangulo alrededor de cada region detectada con mser 
-    list_rectangles = mser_detector.rectangle_of_regions(imagen_list, mascaras, regiones_dibujadas)
+    list_images_with_rectangles = mser_detector.rectangle_of_regions(imagen_list, regiones)
     # Filtramos los rectangulos para quedarnos con los que cumplan la relacion de aspecto
-    list_filtered_rectangles, list_filtered_regions = mser_detector.rectangle_filtered(imagen_list, mascaras, regiones_dibujadas)
+    list_filtered_image_with_rectangles, list_filtered_regions = mser_detector.rectangle_filtered(imagen_list, regiones)
     # Ampliamos los rectangulos anteriores y extraemos en una ventana cada rectangulo ampliado de la imagen 
     lista_coordenadas_regiones = mser_detector.extract_enlarge_rectangles(imagen_list, list_filtered_regions)
     
@@ -62,3 +62,4 @@ if __name__ == "__main__":
     image_upload()
     detected_coords = mser_detection()
     scoreds_and_coords = detection_with_correlation_masks(detected_coords)
+    print('hola')
