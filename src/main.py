@@ -21,13 +21,13 @@ def detection_with_correlation_masks():
     # vvvv Mocke vvvvv
     # TODO: CONSEGUIR COORDENADAS MSER 
     imagenes = [cv2.imread('./imagenesTest/00003.png')] 
-    coords = None
+    coords = [[(1300, 400, 270, 170)]]
     #######################################################
-    # Descomentar esta lineas cuando se tengas las coords
-    # detected_zones = preprocessor.cut_detected_zones(imagen_list, coords)
-    detected_zones = preprocessor.cut_detected_zones(imagenes)                                         
+    detected_zones = color_detector.cut_detected_zones(imagenes, coords)                                         
     masks = color_detector.apply_blue_filter(detected_zones)
+    color_detector.correlation(masks[0])
+    
 
 if __name__ == "__main__":    
-    image_upload()
+    #image_upload()
     detection_with_correlation_masks()
