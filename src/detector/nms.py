@@ -1,6 +1,6 @@
 import cv2
 
-class nms:
+class NMS:
     def __init__(self):
         super().__init__()
 
@@ -75,14 +75,14 @@ class nms:
     float: Resultado de aplicar IoU.
     '''
     def intersectionOverUnion(self, box1, box2):
-        x, y, w, h = cv2.boundingRect(box1)
+        x, y, w, h = box1
         xA1 = x
         yA1 = y
         x = x + w
         y = y + h
         xA2 = x
         yA2 = y
-        x, y, w, h = cv2.boundingRect(box2)
+        x, y, w, h = box2
         xB1 = x
         yB1 = y
         x = x + w
