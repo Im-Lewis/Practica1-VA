@@ -1,11 +1,10 @@
 import cv2
 import numpy as np
+from detector.detector import Detector
 
-
-class MSERDetector:
+class MSERDetector(Detector):
     def __init__(self):
             super().__init__()
-    
     '''
         Recibe una lista de imagenes a color y una lista de imagenes en grises 
         Devuelve tres listas:
@@ -17,48 +16,24 @@ class MSERDetector:
     '''
     def mser(self, list_images:list[np.ndarray], gray_images:list[np.ndarray]): 
         list_images_regions = [] # Lista de imagenes con las regiones dibujadas
-        list_of_masks = [] # Lista de listas de regiones detectadas en cada imagen 
-        
         list_of_regions = [] # Lista de regiones de una imagen
 
-        for i, img in enumerate(gray_images):  
-            copy = list_images[i].copy()
-
-            # Umbralizado adaptativo usando la media
-            img_med = cv2.adaptiveThreshold(img,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,21, 10)
-
-            # Canny para obtener la imagen de bordes
-            filtered_image = cv2.Canny(img_med, 100, 200)
-
-            # Dilatamos la imagen para hacer los bordes mas gruesos
-            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,3))
-            dilated_image = cv2.dilate(filtered_image, kernel)
-
-            mser = cv2.MSER_create(delta=10, max_variation=0.1, min_area=1000, max_area=45000)
-            polygons, _ = mser.detectRegions(dilated_image)
-            list_of_regions.append(polygons)
-
-            # Creamos una mascara para almacenar las regiones detectadas 
-            mask = np.zeros((dilated_image.shape[0], img.shape[1]), dtype=np.uint8)
-            list_of_masks.append(mask)
-
-            hulls = []
-            for p in polygons:
-                hull = cv2.convexHull(p.reshape(-1, 1, 2))
-                hulls.append(hull)
+        for img, gray_img in zip(list_images, gray_images):  
+            copy_img = img.copy()
+            copy_img_gray = gray_img.copy()
             
-            # Dibujamos las regiones
-            cv2.polylines(copy, hulls, 1, (0, 255, 0), 2)
-            list_images_regions.append(copy)
-        # TODO
-        # Mostramos la primera y la ultima imagen 
-        # cv2.imshow('Detected Traffic Signs', list_images_regions[0])
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        # cv2.imshow('Detected Traffic Signs', list_images_regions[-1])
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        return list_images_regions, list_of_masks, list_of_regions
+            bordered_image = self.preprocessor.extract_border(copy_img_gray)
+            polygons = self.get_regions_with_mser(bordered_image)
+            list_of_regions.append(polygons)
+            copy_img = self.preprocessor.drawn_regions(polygons, copy_img)
+            list_images_regions.append(copy_img)
+            
+        return list_images_regions, list_of_regions
+    
+    def get_regions_with_mser(self, bordered_image):
+        mser = cv2.MSER_create(delta=10, max_variation=0.1, min_area=1000, max_area=45000)
+        polygons, _ = mser.detectRegions(bordered_image)
+        return polygons
     
 
     '''
@@ -67,26 +42,15 @@ class MSERDetector:
         Ejemplo de llamada a una funcion:
             list_rectangles = rectangle_of_regions(listaImagenes, masks_list, regions_list)
     '''
-    def rectangle_of_regions(self, list_images:list[np.ndarray], list_masks, list_regions):
-        list_images_rectangles = [] # Lista de imagenes con las regiones dentro de un rectangulo
-        for i,image in enumerate(list_images):
-            copy = list_images[i].copy()
-            for region in list_regions[i]:
-                x, y, w, h = cv2.boundingRect(region)
-                cv2.rectangle(list_masks[i], (x, y), (x + w, y + h), (255), -1)
-                cv2.rectangle(copy, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            list_images_rectangles.append(copy)
-        # TODO
-        # Mostramos la primera y la ultima imagen 
-        # cv2.imshow('Detected Traffic Signs', list_images_rectangles[0])
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        # cv2.imshow('Detected Traffic Signs', list_images_rectangles[-1])
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        return list_images_rectangles
-    
-
+    def rectangle_of_regions(self, list_images:list[np.ndarray], list_regions):
+        list_images_with_rectangles = [] # Lista de imagenes con las regiones dentro de un rectangulo
+        for image, regions in zip(list_images, list_regions):
+            img_copy = image.copy()
+            for region in regions:
+                img_copy = self.preprocessor.draw_a_rectangle_on_region(img_copy, region)
+            list_images_with_rectangles.append(img_copy)
+        
+        return list_images_with_rectangles
     '''
         Recibe una lista de imagenes a color, una lista de las mascaras detectadas con mser y la lista de las regiones dibujadas en mser 
         Devuelve dos listas: 
@@ -95,38 +59,28 @@ class MSERDetector:
         Ejemplo de llamada a la funcion:
             list_filtered_rectangles, list_filtered_regions = rectangle_filtered(listaImagenes, masks_list, regions_list)
     '''
-    def rectangle_filtered(self, list_images:list[np.ndarray], list_masks, list_regions):
-        list_filtered_rectangles = [] # Lista de imagenes con los rectangulos que cumplen el tamanyo
+    def rectangle_filtered(self, list_images:list[np.ndarray], list_regions):
+        list_filtered_image_with_rectangles = [] # Lista de imagenes con los rectangulos que cumplen el tamanyo
         list_filtered_regions = [] # Lista de regiones filtradas 
 
-        for i, image in enumerate(list_images):
+        for image, regions in zip(list_images, list_regions):
+            img_copy = image.copy()
             filtered_regions_act_img = [] # Regiones filtradas de la imagen actual
-
-            copy = list_images[i].copy() # Copia de la imagen actual
-
-            for region in list_regions[i]:
-                x, y, w, h = cv2.boundingRect(region)
-                aspect_ratio = w / float(h)
-                
+            for region in regions:
                 # Filtramos las regiones en funcion de la relacion de aspecto 
-                if aspect_ratio > 0.7 and aspect_ratio < 6.5:
+                if (self.aspect_ratio(region)):
                     filtered_regions_act_img.append(region)
-                    cv2.rectangle(list_masks[i], (x, y), (x + w, y + h), (255), -1)
-                    cv2.rectangle(copy, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
+                    img_copy = self.preprocessor.draw_a_rectangle_on_region(img_copy, region)
+                    
             list_filtered_regions.append(filtered_regions_act_img)
-            list_filtered_rectangles.append(copy)
-        # TODO
-        # Mostramos la primera y la ultima imagen 
-        # cv2.imshow('Detected Traffic Signs', list_filtered_rectangles[0])
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        # cv2.imshow('Detected Traffic Signs', list_filtered_rectangles[-1])
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+            list_filtered_image_with_rectangles.append(img_copy)
         
-        return list_filtered_rectangles, list_filtered_regions 
+        return list_filtered_image_with_rectangles, list_filtered_regions 
     
+    def aspect_ratio(self, region):
+        _, _, w, h = cv2.boundingRect(region)
+        aspect_ratio = w / float(h)
+        return aspect_ratio > 0.7 and aspect_ratio < 6.5
 
     '''
         Recibe una lista de las imagenes a color y una listas con las regiones filtradas de las imagenes
@@ -158,6 +112,7 @@ class MSERDetector:
 
                 rectangulo = cv2.rectangle(list_images[i].copy(), (x_new, y_new), (x_new + w_new, y_new + h_new), (0, 0, 255), 2)
                 pixels_region = list_images[i][y_new:y_new+h_new, x_new:x_new+w_new]
+                
                 regiones_rectangulares.append((rectangulo, pixels_region))
                 regions_of_actual_image.append(tuple_of_coords) # Anyadimos las coordenadas a de la region a la lista
             # TODO
@@ -171,3 +126,13 @@ class MSERDetector:
 
             regions_of_images.append(regions_of_actual_image) # Anyadimos la lista de coordenadas de las regiones de la imagen actual 
         return regions_of_images
+    
+    
+
+def draw_last_and_first(self, list_image):
+    cv2.imshow('Detected Traffic Signs', list_image[0])
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    cv2.imshow('Detected Traffic Signs', list_image[-1])
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
