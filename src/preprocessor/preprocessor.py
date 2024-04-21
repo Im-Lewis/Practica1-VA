@@ -2,6 +2,7 @@ from preprocessor.loader import Loader
 from preprocessor.converter import Converter
 from matplotlib import pyplot as plt
 import cv2
+import numpy as np
 
 class Preprocessor(Loader, Converter):
     def __init__(self):
