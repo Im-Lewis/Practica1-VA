@@ -8,12 +8,11 @@ class Preprocessor(Loader, Converter):
     def __init__(self):
         None
         
-    def cut_detected_zones(self, imagenes, coords  = [[(1300, 400, 270, 170)]]):
+    def cut_detected_zones(self, imagen, coords  = [(1300, 400, 270, 170)]):
         detected_subimages = []
-        for coord, imagen in zip(coords, imagenes):
-            for c in coord:
-                im = self.cut_zone(imagen, c)
-                detected_subimages.append(im)
+        for coord in coords:
+            im = self.cut_zone(imagen, coord)
+            detected_subimages.append(im)
         return detected_subimages
     
     def cut_zone(self, image, coord):
