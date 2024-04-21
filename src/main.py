@@ -49,8 +49,7 @@ def detection_with_correlation_masks(coords_list):
     # Filtrado azul a cada mascara detectada                              
     masks_per_image = color_detector.apply_all_blue_filter(detected_zones)
     
-    # Calculamos el Score para cada 
-    # mack_and_score_list = [ [((x, y, w, h), score)] ] 
+    # Calculamos el Score para cada imagen y paneles
     #              Lista principal hace referencia a la imagen entera
     #              Lista interna a los subpaneles encontrados en la imagen entera
     score_list = color_detector.all_correlation(masks_per_image, coords_list)
@@ -62,4 +61,3 @@ if __name__ == "__main__":
     image_upload()
     detected_coords = mser_detection()
     scoreds_and_coords = detection_with_correlation_masks(detected_coords)
-    print('hola')
