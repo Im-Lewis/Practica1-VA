@@ -7,6 +7,8 @@ from detector.nms import NMS
 import shutil
 import os
 
+import numpy as np
+
 dir = "imagenesTest"
 preprocessor = Preprocessor()
 color_detector = ColorDetector()    
@@ -21,6 +23,9 @@ def image_upload():
     
     imagen_list = preprocessor.load_all_images(dir)
     gray_images = preprocessor.convert_to_gray(imagen_list)
+
+
+
 
 if __name__ == "__main__":    
 
@@ -37,9 +42,8 @@ if __name__ == "__main__":
             
             if img is not None:
                 
-                
+                img = increase_saturation(img)
                 img = color_detector.apply_blue_filter([img])[0]
-                
                 
                 output_img_path = os.path.join(output_folder, filename)
                 cv2.imwrite(output_img_path, img)
@@ -47,6 +51,5 @@ if __name__ == "__main__":
                 print(f"Error al cargar la imagen {filename}")
         else:
             print(f"Omitido archivo no imagen: {filename}")
-
 
 
