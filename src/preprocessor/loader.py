@@ -28,7 +28,7 @@ class Loader:
     def load_image(self, dir, image_name):
         if image_name.endswith(".jpg") or image_name.endswith(".png"):
             image_path = os.path.join(dir, image_name)
-            image = cv2.imread(image_path)
+            image = cv2.imread(image_path, 1)
             if image is not None:
                 return image
     def show(self, image, title=""):
