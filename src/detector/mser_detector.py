@@ -15,12 +15,12 @@ class MSERDetector:
         Ejemplo de llamada a la funcion:
             regiones, mascaras, regiones_dibujadas = mser(listaImagenes, listaGrises)
     '''
-    def mser(list_images, grey_images): 
+    def mser(self, list_images, gray_images): 
         list_images_regions = [] # Lista de imagenes con las regiones dibujadas
         list_of_masks = [] # Lista de listas de regiones detectadas en cada imagen 
         list_of_regions = [] # Lista de regiones de una imagen
 
-        for i, img in enumerate(grey_images):  
+        for i, img in enumerate(gray_images):  
             copy = list_images[i].copy()
 
             # Umbralizado adaptativo usando la media
@@ -63,8 +63,10 @@ class MSERDetector:
     '''
         Recibe una lista de imagenes a color, una lista de las mascaras detectadas con mser y la lista de las regiones dibujadas en mser 
         Devuelve la lista de las imagenes con los rectangulos dibujados rodeando la zona detectada con mser()
+        Ejemplo de llamada a una funcion:
+            list_rectangles = rectangle_of_regions(listaImagenes, masks_list, regions_list)
     '''
-    def rectangle_of_regions(list_images, list_masks, list_regions):
+    def rectangle_of_regions(self, list_images, list_masks, list_regions):
         list_images_rectangles = [] # Lista de imagenes con las regiones dentro de un rectangulo
         for i,image in enumerate(list_images):
             copy = list_images[i].copy()
@@ -92,7 +94,7 @@ class MSERDetector:
         Ejemplo de llamada a la funcion:
             list_filtered_rectangles, list_filtered_regions = rectangle_filtered(listaImagenes, masks_list, regions_list)
     '''
-    def rectangle_filtered(list_images, list_masks, list_regions):
+    def rectangle_filtered(self, list_images, list_masks, list_regions):
         list_filtered_rectangles = [] # Lista de imagenes con los rectangulos que cumplen el tamanyo
         list_filtered_regions = [] # Lista de regiones filtradas 
 
@@ -138,7 +140,7 @@ class MSERDetector:
         La lista contiene listas de tuplas, una lista de tuplas por cada imagen y en la misma posicion de lista que la imagen a la que corresponde 
         Cada lista de tuplas contiene una tupla, cada una de ellas pertenece a cada region detectada en la imagen, y contiene los valores x, y, w, h de la region
     '''
-    def extraer_regiones_rectangulares(list_images, list_regions):
+    def extract_enlarge_rectangles(self, list_images, list_regions):
         regions_of_images = [] # Lista de listas de las regiones de cada imagen
         for i,img in enumerate(list_images): 
             regions_of_actual_image = [] # Lista de coordenadas de las regiones de la imagen actual
