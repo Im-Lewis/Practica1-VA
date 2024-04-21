@@ -15,9 +15,10 @@ class MSERDetector:
         Ejemplo de llamada a la funcion:
             regiones, mascaras, regiones_dibujadas = mser(listaImagenes, listaGrises)
     '''
-    def mser(self, list_images, gray_images): 
+    def mser(self, list_images:list[np.ndarray], gray_images:list[np.ndarray]): 
         list_images_regions = [] # Lista de imagenes con las regiones dibujadas
         list_of_masks = [] # Lista de listas de regiones detectadas en cada imagen 
+        
         list_of_regions = [] # Lista de regiones de una imagen
 
         for i, img in enumerate(gray_images):  
@@ -49,14 +50,14 @@ class MSERDetector:
             # Dibujamos las regiones
             cv2.polylines(copy, hulls, 1, (0, 255, 0), 2)
             list_images_regions.append(copy)
-
+        # TODO
         # Mostramos la primera y la ultima imagen 
-        cv2.imshow('Detected Traffic Signs', list_images_regions[0])
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        cv2.imshow('Detected Traffic Signs', list_images_regions[-1])
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow('Detected Traffic Signs', list_images_regions[0])
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        # cv2.imshow('Detected Traffic Signs', list_images_regions[-1])
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         return list_images_regions, list_of_masks, list_of_regions
     
 
@@ -66,7 +67,7 @@ class MSERDetector:
         Ejemplo de llamada a una funcion:
             list_rectangles = rectangle_of_regions(listaImagenes, masks_list, regions_list)
     '''
-    def rectangle_of_regions(self, list_images, list_masks, list_regions):
+    def rectangle_of_regions(self, list_images:list[np.ndarray], list_masks, list_regions):
         list_images_rectangles = [] # Lista de imagenes con las regiones dentro de un rectangulo
         for i,image in enumerate(list_images):
             copy = list_images[i].copy()
@@ -75,14 +76,14 @@ class MSERDetector:
                 cv2.rectangle(list_masks[i], (x, y), (x + w, y + h), (255), -1)
                 cv2.rectangle(copy, (x, y), (x + w, y + h), (0, 0, 255), 2)
             list_images_rectangles.append(copy)
-
+        # TODO
         # Mostramos la primera y la ultima imagen 
-        cv2.imshow('Detected Traffic Signs', list_images_rectangles[0])
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        cv2.imshow('Detected Traffic Signs', list_images_rectangles[-1])
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow('Detected Traffic Signs', list_images_rectangles[0])
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        # cv2.imshow('Detected Traffic Signs', list_images_rectangles[-1])
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         return list_images_rectangles
     
 
@@ -94,7 +95,7 @@ class MSERDetector:
         Ejemplo de llamada a la funcion:
             list_filtered_rectangles, list_filtered_regions = rectangle_filtered(listaImagenes, masks_list, regions_list)
     '''
-    def rectangle_filtered(self, list_images, list_masks, list_regions):
+    def rectangle_filtered(self, list_images:list[np.ndarray], list_masks, list_regions):
         list_filtered_rectangles = [] # Lista de imagenes con los rectangulos que cumplen el tamanyo
         list_filtered_regions = [] # Lista de regiones filtradas 
 
@@ -115,14 +116,14 @@ class MSERDetector:
 
             list_filtered_regions.append(filtered_regions_act_img)
             list_filtered_rectangles.append(copy)
-
+        # TODO
         # Mostramos la primera y la ultima imagen 
-        cv2.imshow('Detected Traffic Signs', list_filtered_rectangles[0])
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-        cv2.imshow('Detected Traffic Signs', list_filtered_rectangles[-1])
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.imshow('Detected Traffic Signs', list_filtered_rectangles[0])
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+        # cv2.imshow('Detected Traffic Signs', list_filtered_rectangles[-1])
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         
         return list_filtered_rectangles, list_filtered_regions 
     
@@ -159,14 +160,14 @@ class MSERDetector:
                 pixels_region = list_images[i][y_new:y_new+h_new, x_new:x_new+w_new]
                 regiones_rectangulares.append((rectangulo, pixels_region))
                 regions_of_actual_image.append(tuple_of_coords) # Anyadimos las coordenadas a de la region a la lista
-
+            # TODO
             # Recortamos los rectangulos de las regiones de la primera y ultima imagen y los mostramos en una ventana aparte
-            if(i == 0) or (i == 101):
-                for rectangulo, pixels_region in regiones_rectangulares:
-                    cv2.imshow('rectangulo', rectangulo)
-                    cv2.imshow('region detectada', pixels_region)
-                    cv2.waitKey(0)
-                    cv2.destroyAllWindows()
+            # if(i == 0) or (i == 101):
+            #     for rectangulo, pixels_region in regiones_rectangulares:
+            #         cv2.imshow('rectangulo', rectangulo)
+            #         cv2.imshow('region detectada', pixels_region)
+            #         cv2.waitKey(0)
+            #         cv2.destroyAllWindows()
 
             regions_of_images.append(regions_of_actual_image) # Anyadimos la lista de coordenadas de las regiones de la imagen actual 
         return regions_of_images

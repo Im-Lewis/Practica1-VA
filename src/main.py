@@ -33,24 +33,32 @@ def mser_detection():
     # Ampliamos los rectangulos anteriores y extraemos en una ventana cada rectangulo ampliado de la imagen 
     lista_coordenadas_regiones = mser_detector.extract_enlarge_rectangles(imagen_list, list_filtered_regions)
     
-def detection_with_correlation_masks():
-    global imagen_list
-    global gray_images
-    
-    color_detector.show_ideal_mask()
-    #######################################################
-    # vvvv Mocke vvvvv
-    # TODO: CONSEGUIR COORDENADAS MSER 
-    imagenes = [cv2.imread('./imagenesTest/00003.png')] 
-    coords = [[(1300, 400, 270, 170)]]
-    #######################################################
-    detected_zones = color_detector.cut_detected_zones(imagenes, coords)                                         
-    masks = color_detector.apply_blue_filter(detected_zones)
-    color_detector.correlation(masks[0])
-    
+    return lista_coordenadas_regiones
 
+
+def detection_with_correlation_masks(coords_list):
+    global imagen_list
+    
+    # Mostramos la mascara ideal
+    color_detector.show_ideal_mask()
+    
+    # Lista donde cada posicion es una lista de sub-carteles de una imagen de imagen_list 
+    # detected_zones = [[subpanel, subpabel...], [subpanel], ...]
+    detected_zones = color_detector.cut_detected_zones(imagen_list, coords_list)
+    
+    # Filtrado azul a cada mascara detectada                              
+    masks_per_image = color_detector.apply_all_blue_filter(detected_zones)
+    
+    # Calculamos el Score para cada 
+    # mack_and_score_list = [ [((x, y, w, h), score)] ] 
+    #              Lista principal hace referencia a la imagen entera
+    #              Lista interna a los subpaneles encontrados en la imagen entera
+    score_list = color_detector.all_correlation(masks_per_image, coords_list)
+    
+    # score_list = [[(cord, score)]] = [[((x, y, w, h), score)]]
+    return score_list
 if __name__ == "__main__":    
     
     image_upload()
-    #mser_detection()
-    detection_with_correlation_masks()
+    detected_coords = mser_detection()
+    scoreds_and_coords = detection_with_correlation_masks(detected_coords)
