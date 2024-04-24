@@ -20,9 +20,11 @@ class MSERDetector(Detector):
 
         for img, gray_img in zip(list_images, gray_images):  
             copy_img = img.copy()
-            copy_img_gray = gray_img.copy()
+
             
-            bordered_image = self.preprocessor.extract_border(copy_img_gray)
+            bordered_image = self.preprocessor.extract_border(copy_img)
+            
+
             polygons = self.get_regions_with_mser(bordered_image)
             list_of_regions.append(polygons)
             copy_img = self.preprocessor.drawn_regions(polygons, copy_img)

@@ -21,15 +21,10 @@ class Preprocessor(Loader, Converter):
         resized_image = cv2.resize(im, (80,40))
         return resized_image
 
-    def extract_border(self, gray_image):
-        # Umbralizado adaptativo usando la media
-        img_med = cv2.adaptiveThreshold(gray_image, 255, cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,21, 10)
-        # Canny para obtener la imagen de bordes
-        filtered_image = cv2.Canny(img_med, 100, 200)
-        # Dilatamos los bordes de la imagen
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5,3))
-        dilated_image = cv2.dilate(filtered_image, kernel)
-        return dilated_image
+    def extract_border(self, imagen):
+        img = self.increase_saturation(imagen)
+        img = self.apply_blue_filter([img])[0]
+        return img
     
     def draw_a_rectangle_on_region(self, image, region):
         x, y, w, h = cv2.boundingRect(region)
@@ -43,3 +38,28 @@ class Preprocessor(Loader, Converter):
         
         # Dibujamos las regiones
         return cv2.polylines(image, hulls, 1, (0, 255, 0), 2)
+    
+    def increase_saturation(self, image, factor = 2):
+        # Convertir la imagen a espacio de color HSV
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+        # Aumentar la saturación
+        hsv[:,:,1] = np.clip(hsv[:,:,1] * factor, 0, 255).astype(np.uint8)
+
+        # Convertir la imagen de vuelta a BGR
+        result = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+        return result
+    
+    def apply_blue_filter(self, imagenes):
+        self.lower_blue_limit = np.array([105, 150, 20])
+        self.upper_blue_limit = np.array([130, 255, 255])
+        masks = []
+        for image in imagenes:
+            img = self.convert_bgr_to_hsv(image)
+            mask = cv2.inRange(img, self.lower_blue_limit, self.upper_blue_limit)
+            masks.append(mask)
+            # TODO: Cuantos representar
+            #self.show_blue_filter(image, mask)
+            
+        return masks
