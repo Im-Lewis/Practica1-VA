@@ -5,3 +5,9 @@ __pycache__/
 imagenesFinales/**.png
 imagenesColor/**.png
 imagenesFinales/**.png
+
+*.aux
+*.lof
+*.log
+*.gz
+*.toc
