@@ -5,7 +5,7 @@ __pycache__/
 imagenesFinales/**.png
 imagenesColor/**.png
 imagenesFinales/**.png
-
+imgNorma/**.png
 *.aux
 *.lof
 *.log
