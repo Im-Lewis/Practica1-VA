@@ -47,7 +47,7 @@ class ColorDetector(Detector):
         for image in imagenes:
             img = self.preprocessor.convert_bgr_to_hsv(image)
             mask = cv2.inRange(img, self.lower_blue_limit, self.upper_blue_limit)
-            masks.append(mask/255)
+            masks.append(mask)
             # TODO: Cuantos representar
             #self.show_blue_filter(image, mask)
             

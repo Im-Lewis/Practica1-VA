@@ -1,0 +1,119 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[spanish]{babel}
+% \usepackage{hyperref} % Paquete para hipervínculos
+\usepackage[left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm]{geometry}
+\linespread{1.5}
+\usepackage{graphicx} % Required for inserting images
+
+\usepackage{titlesec} % Paquete para el formato de los títulos
+
+% Reducir el espacio entre los apartados del índice
+\makeatletter
+\renewcommand*\l@section{\@dottedtocline{1}{0em}{1.5em}}
+\renewcommand*\l@subsection{\@dottedtocline{2}{1.5em}{2.5em}}
+\renewcommand*\l@subsubsection{\@dottedtocline{3}{4.0em}{3.5em}}
+\makeatother
+
+\begin{document}
+%-------------------------------------------------------
+% PORTADA
+%-------------------------------------------------------
+\begin{titlepage}
+	\begin{center}
+		\includegraphics[scale=0.9]{images.png}
+		\vspace{1.75cm}
+		
+		\large
+		\textbf{ESCUELA TÉCNICA SUPERIOR DE INGENIERÍA INFORMÁTICA}
+		\vspace{1cm}
+		
+		\large
+		\textbf{GRADO EN INGENIERÍA INFORMÁTICA}
+		
+		
+		
+		\large
+		\textbf{Curso Académico 2023/2024}
+		
+		\vspace{1cm}
+		\large
+		\textbf{Práctica 1}
+		
+		\vspace{2cm}
+		
+		\large
+		\textbf{DETECCIÓN DE SEÑALES VIALES}
+		
+		\vspace{2cm}
+		
+		\large
+		Cristian Fernando Calva Troya \\
+		Luis Ovejero Martín \\
+		Jaime Rueda Carpintero
+		\vspace{1cm}
+	\end{center}
+\end{titlepage}
+
+\newpage
+\thispagestyle{empty} 
+\mbox{} 
+
+\newpage
+%-------------------------------------------------------
+% Tabla de figuras
+%-------------------------------------------------------
+\newpage
+\listoffigures
+\newpage
+
+%-------------------------------------------------------
+% Tabla de contenidos
+%-------------------------------------------------------
+{\small
+	\tableofcontents 
+}
+\newpage
+
+%-------------------------------------------------------
+% 1. Introducción
+%-------------------------------------------------------
+\section{Introducción}
+%-------------------------------------------------------
+% 2. OBJETIVOS Y METODOLOGIAS
+%-------------------------------------------------------
+\section{Objetivos y metodología}
+
+\subsection{Descripción del problema}
+
+\subsection{Objetivos}
+3 pag.
+\subsection{Tecnologías}
+
+%-------------------------------------------------------
+% 3. DESCRIPCIÓN INFORMMATICA
+%-------------------------------------------------------
+
+\section{Creación de la aplicación}
+30 pag.
+\subsection{Requisitos}
+
+\subsection{Diseño}
+
+\subsection{Implementación}
+
+\subsubsection{MSER}
+\subsubsection{Detección de color}
+\subsubsection{...}
+
+
+%-------------------------------------------------------
+\section{Conclusiones y trabajos futuros}
+3 pag.
+%-------------------------------------------------------
+\section{Referencias}
+1 pag.
+%-------------------------------------------------------
+\end{document}

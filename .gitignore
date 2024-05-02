@@ -3,3 +3,11 @@ __pycache__/
 .idea
 .ipynb_checkpoints
 imagenesFinales/**.png
+imagenesColor/**.png
+imagenesFinales/**.png
+imgResultNorma/**.png
+*.aux
+*.lof
+*.log
+*.gz
+*.toc
