@@ -6,6 +6,7 @@ from detector.mser_detector import MSERDetector
 from detector.nms import NMS
 import shutil
 import os
+import json
 
 dir = "imagenesTest"
 preprocessor = Preprocessor()
@@ -89,6 +90,7 @@ def remove_repeated_regions(scores_and_coords):
         imagenFiltrada = cv2.cvtColor(imagenFiltrada, cv2.COLOR_BGR2RGB)
         cv2.imwrite('imagenesFinales/'+str(count)+'.png', imagenFiltrada)
         count = count + 1
+        filtered_coords.append(filtered_boxes)
     return filtered_coords
 
 def drawBoxesImage(regionDetectada, imagen):
@@ -98,10 +100,116 @@ def drawBoxesImage(regionDetectada, imagen):
         cv2.rectangle(imagenCopia, (x, y), (x + w, y + h), (255, 0, 0), 10)
     return imagenCopia
 
+def getPanelsGroundTruth(keys, annotations, filesNames):
+    annotationsGroundTruth = []
+    for title in filesNames:
+        imagen = cv2.imread('imagenesTest/'+title)
+        imagenCopia = imagen.copy()
+        key = keys.get(title)
+        if (annotations.get(key) != None):
+            listAnnontations = annotations.get(key)
+            listAux = []
+            for annotation in listAnnontations:
+                x, y, w, h = annotation
+                x = int(x)
+                y = int(y)
+                w = int(w)
+                h = int(h)
+                listAux.append((x, y, w, h))
+                #cv2.rectangle(imagenCopia, (x, y), (x2, y2), (255, 0, 0), 2)
+                #cv2.imwrite('imagenesJsonResult/'+title, imagenCopia)
+            annotationsGroundTruth.append(listAux)
+        else:
+            annotationsGroundTruth.append(())
+            #cv2.imwrite('imagenesJsonResult/'+title, imagenCopia)
+    return annotationsGroundTruth
+
+def mapImages(jsonFile):
+    map = {}
+    for image in jsonFile['images']:
+        name = image['file_name'].split(".")[0].replace("_", ".")
+        map[name] = image['id']
+        #map[image['id']] = image['file_name'].split(".")[0]
+    return map
+
+def mapAnnotations(jsonFile):
+    map = {}
+    for anotation in jsonFile['annotations']:
+        box = anotation['bbox']
+        x, y, h, w = box
+        if (map.get(anotation['image_id']) == None):
+            list = []
+            list.append((x, y, h, w))
+            map[anotation['image_id']] = list
+        else:
+            list = map[anotation['image_id']]
+            list.append(box)
+            map[anotation['image_id']] = list
+    return map
+
+
+def intersectionOverUnion(box1, box2):
+    x, y, w, h = box1
+    xA1 = x
+    yA1 = y
+    x = x + w
+    y = y + h
+    xA2 = x
+    yA2 = y
+    x, y, w, h = box2
+    xB1 = x
+    yB1 = y
+    x = x + w
+    y = y + h
+    xB2 = x
+    yB2 = y
+    x1 = max(xA1, xB1)
+    y1 = max(yA1, yB1)
+    x2 = min(xA2, xB2)
+    y2 = min(yA2, yB2)
+    intersectionArea = (x2 - x1) * (y2 - y1)
+    if (intersectionArea < 0):
+        intersectionArea = 0
+    box1Area = abs((xA2 - xA1) * (yA1 - yA2))
+    box2Area = abs((xB2 - xB1) * (yB1 - yB2))
+    return intersectionArea / (box1Area + box2Area - intersectionArea + 1e-6)
+
+def calculeIoU(boxesReal, boxesFake):
+    media = 0
+    count = 0
+    for boxReal in boxesReal:
+        for boxFake in boxesFake:
+            valueIoU = intersectionOverUnion(boxReal, boxFake)
+            if (valueIoU >= 0.1):
+                media = valueIoU + media
+                count = count + 1
+    media = media / count
+    return media
 
 if __name__ == "__main__":    
     
     image_upload()
     detected_coords = mser_detection()
     scoreds_and_coords = detection_with_correlation_masks(detected_coords)
-    remove_repeated_regions(scoreds_and_coords)
+    coords = remove_repeated_regions(scoreds_and_coords)
+
+    with open('anotaciones.json', "r", encoding='utf-8') as f:
+        content = json.load(f)
+    filesNames = os.listdir("imagenesTest")
+    mapKeys = mapImages(content)
+    mapAnnotation = mapAnnotations(content)
+    pannelsGroundTruth = getPanelsGroundTruth(mapKeys, mapAnnotation, filesNames)
+
+    imagenPrueba = drawBoxesImage(coords[4], imagen_list[4])
+    imagenReal = drawBoxesImage(pannelsGroundTruth[4], imagen_list[4])
+    plt.subplot(1,2,1)
+    plt.title('Real')
+    plt.imshow(imagenReal)
+
+    plt.subplot(1,2,2)
+    plt.title('Detectado')
+    plt.imshow(imagenPrueba)
+    plt.show()
+    media = calculeIoU(pannelsGroundTruth[4], coords[4])
+    print('Media:',media)
+
