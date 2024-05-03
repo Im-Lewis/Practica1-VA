@@ -428,6 +428,10 @@ En la mayoría de los casos de test hemos podido comprobar que los resultados so
 
 Para mejorar estas detecciones se podría hacer usando un modelo de aprendizaje automático, ya que en general suelen dar mejores resultados que este tipo de algoritmos. 
 
+Por último, comentar que la evaluación a través de IoU ha dado una serie de problemas cuando tenemos paneles dentro de otros paneles ya que el algoritmo implementado no es capaz de generar la lista con los valores correctamente. Aunque hemos pasado por la capa de eliminación de regiones repetidas, tenemos algunos paneles que encapsulan a otros de forma mínima que interfiere en el algoritmo. De las 20 imágenes seleccionadas hay 3 que se le ha dado el valor de 0 a sus paneles para evitar errores mayores.
+
+Agregamos un enlace al repositorio en el que hemos estado trabajando: \href{https://github.com/Im-Lewis/Practica1-VA}{Github}.
+
 %-------------------------------------------------------
 \section{Referencias}
 [1] \href{https://www.fomento.gob.es/az.bbmf.web/documentacion/pdf/re3723.pdf}{https://www.fomento.gob.es/az.bbmf.web/documentacion/pdf/re3723.pdf}
