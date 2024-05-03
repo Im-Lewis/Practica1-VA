@@ -149,7 +149,135 @@ Los pasos a seguir para conseguir el angulo de desfase son los siguientes:
 	\end{figure}
 	
 \end{quote}
-\subsection{MSER}
+
+\subsection{Detección de regiones de alto contraste}
+\subsubsection{Aplicar el filtro de azul}
+Antes de empezar a detectar regiones, vamos a aplicar el filtro de azul sobre las imágenes normalizadas. Esto lo hacemos con la idea de mejorar la detección de los carteles, ya que al aplicar el filtro de azul podemos determinar de forma más eficaz la zona de imagen que puede pertenecer a un cartel. 
+
+\subsubsection{MSER}
+Una vez hemos aplicado este filtro a las imágenes ya podemos empezar a detectar regiones sobre las máscaras que hemos generado con el paso anterior.
+
+Para detectar las regiones de alto contraste definimos la función \textit{mser}. Esta recibirá la lista de imágenes normalizadas y la lista de mascaras que hemos creado al aplicar el filtro de azul. 
+Crearemos dos listas que nos servirán para guardar aquellas imágenes sobre las que vamos a dibujar las regiones que detectemos y la otra para guardar las regiones detectadas. 
+
+
+La función va a iterar sobre la lista de imágenes y creará una copia de la imagen normalizada para dibujas las regiones y una copia de la máscara sobre la que aplicará \textit{MSER}. Antes de aplicar el algoritmo dilatamos la mascara y restamos la máscara original a la máscara dilatada para obtener una imagen de bordes. Tras esto creamos un \textit{MSER} y ajustamos los parámetros para filtrar un poco las regiones que pueda detectar, por ejemplo, haciendo que el área mínima de las regiones que detecte sea 900 y que la máxima sea 5000. 
+
+
+Las regiones detectadas en una imagen se guardaran en la variable llamada \textit{polygons}. Sobre esa lista iteraremos a continuación y para cada elemento de la lista aplicaremos la función \textit{convexHull} de \textit{openCV}, con la finalidad de hallar el casco convexo de un conjunto de puntos. Esto quiere decir que la usaremos para determinar el perímetro de la región que hemos detectado. Guardaremos estos perímetros en la lista \textit{hulls}, que usaremos más adelante para poder dibujar las regiones en la imagen. También guardamos la lista de regiones detectadas en \textit{detected\_regions} y finalmente dibujaremos las regiones sobre la copia de la imagen y la guardaremos en la lista que hemos creado al principio para ello. Por último mostramos la primera y última imagen con las regiones dibujadas y devolvemos las listas de las imágenes con las regiones dibujadas y la lista de las regiones detectadas.
+
+Tras ejecutar la función deberían aparecer las imágenes que podemos ver en la \textbf{Fig. x}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\linewidth]{img/ImagenesTrasMSER}
+	\caption{Imagen tras aplicar MSER y dibujar las regiones detectadas}
+	\label{fig:imagenesMSER}
+\end{figure}
+
+
+En la siguiente celda del \textit{notebook} vemos un bloque de código con un bucle \textit{for} que está comentado, lo podemos descomentar y ejecutar para ver el resultado de nuestra función sobre el resto de imágenes de test. Para pasar las fotos simplemente vamos pulsando cualquier tecla. En caso de querer parar tenemos que pulsar el cuadrado de arriba a la izquierda y cerrar la ventana para terminar la ejecución. 
+
+
+\subsubsection{Extraer los píxeles de la región en un rectángulo}
+Para este paso vamos a definir la función \textit{rectangle\_of\_regions} que tiene como objetivo dibujar, usando \textit{cv2.boundingRect}, un rectángulo alrededor de las regiones detectadas en el paso anterior. La función recibirá la lista de imágenes normalizadas y la lista de las regiones detectadas en el paso anterior.
+Se creará una lista en la que se añadirán las imágenes con los rectángulos dibujados. Iteraremos sobre las imágenes de test y crearemos una copia de cada imagen. Ahora iteraremos sobre las regiones de la imagen sobre la que estamos trabajando y usaremos \textit{cv2.boundingRect}, para obtener el punto superior izquierdo de la región y el ancho y alto de la misma y con ello dibujaremos el rectángulo con \textit{cv2.rectangle}. 
+
+
+Tras dibujar las regiones añadimos la imagen a la lista, imprimimos la primera y la última de estas imágenes y devolvemos la lista donde las hemos guardado. 
+
+
+Al igual que en la región anterior, tenemos una celda de código comentado que podremos usar para poder ver el resultado en el resto de imágenes.
+
+Un ejemplo de los resultados que podemos ver en estas imágenes resultado lo vemos en la \textbf{Fig. x}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\linewidth]{img/Rectangulos}
+	\caption{Imagen tras dibujar un rectángulo en cada región detectada}
+	\label{fig:Rectangulos}
+\end{figure}
+
+\subsubsection{Filtrar rectángulos por relación de aspecto}
+En este apartado se pide que filtremos los rectángulos de las regiones, que hemos dibujado en el paso anterior, por su relación de aspecto con la finalidad de eliminar aquellos que disten mucho de la relación de aspecto de los carteles que se pretenden detectar. 
+
+
+Además de esto hemos hecho que la función encargada de realizar esto también elimine los rectángulos contenidos dentro de otros. Esto lo hacemos porque queremos solo detectar la región del panel azul, no los subpaneles. La idea es encontrar los subpaneles más adelante, pero solo sobre la imagen del cartel en lugar de hacerlo en la imagen completa, así podemos eliminar detecciones basura que pueda llegar a hacer en la imagen completa, pero de esto ya hablaremos próximamente.
+
+
+Crearemos dos listas, una para las imágenes con las regiones filtradas dibujadas y otra para las regiones filtradas. 
+
+
+Luego iteraremos sobre las imágenes, para cada una de estas vamos a crear una lista para guardar las regiones filtradas de esta imagen y copiaremos la imagen para poder dibujar las regiones en la copia así como hemos anteriormente. 
+
+
+Ahora iteraremos sobre la lista de regiones que pertenecen a esta imagen. Para cada región que hay en la lista vamos a usar \textit{cv2.boundingRect} para obtener el ancho y el alto, con esto podremos calcular la relación de aspecto de las regiones. Nos vamos a quedar con las regiones que tengan una relación de aspecto (ancho/alto) entre 0.6 y 6.5. 
+
+
+Con la regiones que cumplan esto vamos a hacer la comprobación de si están dentro de otra, en caso de que se cumpla y esté dentro de otra, no nos vamos a quedar con ella, solo queremos quedarnos con las regiones más exteriores con la idea de quedarnos con la región del cartel completo, ya que como hemos dicho antes los subpaneles los buscaremos luego.
+
+Iremos agregando las regiones que cumplan ambas condiciones a la lista \textit{filtered\_regions} y dibujando las mismas en sus imágenes correspondientes, estas las añadiremos también a \textit{images\_filtered\_rectangles}.
+
+Finalmente mostraremos la primera ya la última imagen ya que en estas vemos como se eliminan algunas regiones que no cumplen con las exigencias que queremos. Por último vamos a devolver la lista de imágenes y de regiones filtradas.
+
+Al igual que en los pasos anteriores tenemos una celda comentada para poder ver el resultado en el resto de imágenes. 
+
+Podemos ver el resultado sobre la \textbf{Fig. x} anterior y la \textbf{Fig. x} que tenemos a continuación.
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\linewidth]{img/RectangulosFiltrados}
+	\caption{Imagen tras filtrar los rectángulos del paso anterior.}
+	\label{fig:RectangulosFiltrados}
+\end{figure}
+
+
+\subsubsection{Expandir regiones filtradas}
+Al igual que se explica en el enunciado, es posible que haya regiones, sobre las que hemos dibujado un rectángulo, en las que nos haya quedado parte del cartel fuera del rectángulo y para arreglar este pequeño problema, que puede empeorar los resultados en pasos posteriores, tenemos que aumentar el tamaño del rectángulo.
+
+Para solucionar esto tenemos la función \textit{expand\_regions}. Al igual que las funciones anteriores recibirá dos listas. Una de las imágenes normalizadas y la otra de las regiones filtradas en el paso anterior.
+
+La función irá iterando sobre las imágenes de la lista que recibe como primer argumento. Para cada imagen iterará sobre sus regiones filtradas y hallará el punto superior izquierdo (valores \textit{x} e \textit{y}), el ancho y el alto de la región. Una vez tiene estos valores en el caso de los valores de x e y restaremos un valor para que se muevan más hacia arriba a la izquierda. En el caso de la altura y anchura sumaremos un valor porque queremos que sean más grandes. 
+
+Dibujaremos el rectángulo de nuevas dimensiones sobre la copia de la imagen normalizada que hemos hecho previamente. Después de eso vamos crear una pequeña imagen de la región, llamada \textit{pixels\_region}. 
+También vamos a guardar en una lista de posibles paneles (\textit{possible\_panels\_img}) este recorte de la imagen normalizada en la que podría haber un panel. Además guardaremos en forma de tupla las coordenadas de cada región ampliada para usarlas más adelante. 
+
+Al igual que hemos hecho en los pasos anteriores vamos a mostrar el resultado de la primera y última imagen y se devolverá la lista de imágenes con las regiones ampliadas dibujadas, otra lista para las coordenadas nuevas de las regiones y la lista de posibles subpaneles. 
+
+Al igual que en los apartados anteriores podemos ver el resultado del resto de imágenes al ejecutar la celda de código siguiente. 
+
+Un ejemplo sería el que podemos ver en la \textbf{Fig. x}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\linewidth]{img/RectangulosFiltradosExtendidos}
+	\caption{Imagen tras ampliar los rectángulos del paso anterior.}
+	\label{fig:RectangulosFiltradosExtendidos}
+\end{figure}
+
+
+\subsubsection{Detección de subpaneles dentro de la región del cartel}
+El proceso de filtrado de las regiones detectadas tenía como objetivo llegar a este punto. Según el enunciado de la práctica, esta parte no se pedía. Nuestra idea era trabajar solo con las regiones que podrían ser carteles a la hora de buscar los subpaneles, ya que pensamos que al haber menos elementos en la imagen seríamos capaces de localizar los paneles de manera más efectiva.
+
+Dentro de este apartado vamos a volver a ejecutar acciones parecidas a las que hemos usado ya, pero en este caso lo haremos sobre los recortes de las imágenes que hemos determinado que pueden ser carteles. 
+
+En la función \textit{detect\_subpanels} vamos a recibir las imágenes normalizadas y la lista de los recortes de cada imagen. Lo que haremos será, imagen por imagen, volver a usar \textit{mser} para detectar las regiones de los subpaneles. Estas imágenes las vamos a redimensionar con \textit{cv2.resize} para hacerlas más grandes. Les aplicaremos en filtro de azul para binarizarlas y usaremos \textit{cv2.Canny} para hallar la imagen de bordes. La dilataremos para no perder detalles en los bordes y aplicaremos \textit{mser} para detectar los subpaneles. Posteriormente a detectar las regiones vamos a ampliarlas y guardar sus coordenadas. 
+
+Finalmente la función va a devolver una lista de recortes de cada región detectada anteriormente, es decir las subregiones dentro de las regiones previas. Estos recortes son posibles subpaneles de las imágenes (\textit{possible\_subpanels}). También vamos a devolver las coordenadas de estas subregiones en la lista 
+\textit{subpanel\_coords}.
+
+En la \textbf{Fig. x} podemos ver las subregiones detectadas en este paso en la imagen 6.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.6\linewidth]{img/subregiones}
+	\caption{Subpaneles detectados en la imagen 6.}
+	\label{fig:subregioness}
+\end{figure}
+
+\subsubsection{Coordenadas de los subpaneles en la imagen original}
+Este es el último paso antes de pasar a la correlación de mascaras. En este paso vamos a corregir las coordenadas que acabamos de obtener de los subpaneles. Esto lo hacemos porque al aumentar el tamaño de la región sobre la que hemos detectado las subregiones, las coordenadas de la subregión también se ven afectadas por el cambio. Para ello tenemos que corregir las coordenadas en el sentido inverso en el que habíamos aumentado la imagen. En el paso anterior hemos multiplicado por tres el ancho y el alto de la imagen y ahora tendremos que dividir por tres. 
+
+Para esto tenemos la función \textit{fix\_coords} de manera similar a como lo hemos ido haciendo anteriormente obtendremos las coordenadas de cada posible subpanel detectado en cada una de las imágenes. Una vez tenemos las coordenadas las ajustamos y las volvemos a guardar en una lista que vamos a devolver. 
+
 
 \subsection{Correlación por máscaras}
 \subsubsection{Mascara ideal}
