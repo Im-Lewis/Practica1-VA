@@ -11,6 +11,12 @@
 \usepackage{titlesec} % Paquete para el formato de los títulos
 \usepackage{hyperref}
 
+\hypersetup{
+	colorlinks=true,
+	urlcolor=blue,
+	linkcolor=black  % Cambia el color de los índices a azul oscuro
+}
+
 \setlength{\parindent}{0pt}
 
 % Reducir el espacio entre los apartados del índice
@@ -84,19 +90,28 @@
 % 1. Introducción
 %-------------------------------------------------------
 \section{Introducción}
+En esta práctica, abordamos el desafío de la detección de señales viales utilizando técnicas de procesamiento de imágenes. Nuestro objetivo es desarrollar un sistema capaz de identificar y localizar paneles de tráfico en imágenes capturadas por vehículos en carretera.
+
+Para lograrlo, aplicamos una variedad de técnicas de procesamiento de imágenes, desde la normalización y filtrado de color, hasta la detección de regiones de interés y la correlación por máscaras. Estas técnicas nos permiten preprocesar las imágenes de manera adecuada para extraer las características relevantes y luego identificar los paneles de señalización de tráfico en base a un panel ideal.
+
+
 %-------------------------------------------------------
 % 2. OBJETIVOS Y METODOLOGIAS
 %-------------------------------------------------------
 \section{Objetivos y metodología}
 
-\subsection{Descripción del problema}
+\subsection{Descripción del problema y objetivos}
+Se desea construir un sistema para la detección automática de paneles informativos de tráfico de color azul, en imágenes realistas que han sido tomadas desde un coche. Los paneles se han diseñado para que sean fácilmente distinguibles del entorno en cualquier condición de luz, color de fondo y climatología.
 
-\subsection{Objetivos}
-3 pag.
+El objetivo de esta práctica es crear una aplicación que recibiendo una lista de imágenes sea capaz de determinar si hay o no paneles informativos de tráfico y en caso de haberlos determinar en que región de la imagen se encuentran. 
+
 \subsection{Tecnologías}
+Para el desarrollo de esta práctica hemos usado el lenguaje \textit{Python} y, principalmente la librería de \textit{OpenCV} (\textit{cv2}), entre otras como, \textit{matplotlib}, \textit{numpy}, \textit{os} y \textit{math}. 
+
+El código de la practica ha sido desarrollado en \textit{jupiter notebook}.
 
 %-------------------------------------------------------
-% 3. DESCRIPCIÓN INFORMMATICA
+% 3. DESCRIPCIÓN INFORMATICA
 %-------------------------------------------------------
 
 \section{Creación de la aplicación}
@@ -116,57 +131,59 @@ Donde:
 \end{itemize}
 Para obtener la saturación de cada píxel, la imagen es transformada al formato HSV. Este formato tiene tres componentes distintas: matiz, saturación y valor. En nuestro caso tendremoss en cuenta la saturación ya que es la componente que más diferencia hay entre una imagen normal y una con niebla.
 
-Después de obtener esta media de saturación para cada imagen, establecemos un umbral, donde si una imagen no supera ese umbral entonces tendremos que aplicarle un filtro de aumento de saturación. Después de ejecutar este algoritmo observamos que la mayoría de imágenes con niebla no eran capaces de superar el umbral de 27, por lo que ese umbral es el establecido. Las demás imágenes sin niebla no pasarán por este filtro. El filtro en cuestión consiste en tomar la saturación de los píxeles y multiplicarlos por 3, para obtener así una imagen mucho más saturada. Así quedaría el proceso de normalización del color, pasando una imagen con niebla a una mucho más saturada:
+Después de obtener esta media de saturación para cada imagen, establecemos un umbral, donde si una imagen no supera ese umbral entonces tendremos que aplicarle un filtro de aumento de saturación. Después de ejecutar este algoritmo observamos que la mayoría de imágenes con niebla no eran capaces de superar el umbral de 27, por lo que ese umbral es el establecido. Las demás imágenes sin niebla no pasarán por este filtro. El filtro en cuestión consiste en tomar la saturación de los píxeles y multiplicarlos por 3, para obtener así una imagen mucho más saturada. Así quedaría el proceso de normalización del color, pasando una imagen con niebla a una mucho más saturada, como podemos ver en la \textbf{\hyperref[fig:saturada]{Fig. 1}}.
+
 \begin{figure}[h]
 	\centering
+	\caption{Imagen con niebla saturada}\vspace{0.5cm}
 	\includegraphics[width=0.8\linewidth]{img/saturated_img.png}
-	\caption{Imagen con niebla saturada}
 	\label{fig:saturada}
 \end{figure}
+
 \subsubsection{Corrección de ángulo}
 \begin{figure}[h]
 	\centering
+	\caption{Corrección de angulo de la imagen}\vspace{0.5cm}
 	\includegraphics[width=0.8\linewidth]{img/norma_angulo}
-	\caption{Corrección de angulo de la imagen}
 	\label{fig:normaangulo}
 \end{figure}
 
-Otro de los problemas presentes a la hora de procesar las imágenes, para su detección, es la posición de los objetos a detectar. En ocasiones, ya sea por el ángulo de la cámara o la misma posición del cartel respeto a nosotros, puede ocurrir un cierto desfase en el angulo deseado. En la \textbf{Fig. 1} podemos observar un pequeño ejemplo del problema inicial y el resultado deseado, que nos dará una mejor detección de las secciones. Para poder abarcar el problema hemos optado por realizar una corrección a la imagen completa. 
+Otro de los problemas presentes a la hora de procesar las imágenes, para su detección, es la posición de los objetos a detectar. En ocasiones, ya sea por el ángulo de la cámara o la misma posición del cartel respeto a nosotros, puede ocurrir un cierto desfase en el angulo deseado. En la \textbf{\hyperref[fig:normaangulo]{Fig. 2}} podemos observar un pequeño ejemplo del problema inicial y el resultado deseado, que nos dará una mejor detección de las secciones. Para poder abarcar el problema hemos optado por realizar una corrección a la imagen completa. 
 
 Los pasos a seguir para conseguir el angulo de desfase son los siguientes:
 
 
 
 \begin{quote}
-	\textbf{1.} Aplicamos una detección de color azul ya que respecto a las diferentes pruebas, ha dado mejores resultados para eliminar las zonas no deseadas y poder centrarnos en las secciones más azules (los paneles deseados.) En la \textbf{Fig. x} podemos ver un ejemplo de los posibles resultados.
+	\textbf{1.} Aplicamos una detección de color azul ya que respecto a las diferentes pruebas, ha dado mejores resultados para eliminar las zonas no deseadas y poder centrarnos en las secciones más azules (los paneles deseados.) En la \textbf{\hyperref[fig:imagebluef]{Fig. 3}} podemos ver un ejemplo de los posibles resultados.
 	\begin{figure}[h]
 		\centering
+		\caption{Imagen tras aplicar filtro azul}\vspace{0.5cm}
 		\includegraphics[width=0.6\linewidth]{img/image_blue_f}
-		\caption{Imagen tras aplicar filtro azul}
 		\label{fig:imagebluef}
 	\end{figure}
 	
-	\textbf{2.} Realizamos una detección de bordes horizontales. Ya que haremos la corrección en función de como estén estos orientados. En la \textbf{Fig. x} se ve que conseguimos las secciones deseadas.
+	\textbf{2.} Realizamos una detección de bordes horizontales. Ya que haremos la corrección en función de como estén estos orientados. En la \textbf{\hyperref[fig:imageboderh]{Fig. 4}} se ve que conseguimos las secciones deseadas.
 	
 	\begin{figure}[h]
 		\centering
+		\caption{Imagen tras aplicar sobel}\vspace{0.5cm}
 		\includegraphics[width=0.6\linewidth]{img/image_boder_h}
-		\caption{Imagen tras aplicar sobel}
 		\label{fig:imageboderh}
 	\end{figure}
-	\textbf{3.} Finalmente con el algoritmo de Hough extraemos líneas presentes en la imagen, dando como resultado las rectas horizontales. En la \textbf{Fig. x} se visualizan las rectas detectadas, y se calcula el angulo de cada uno de ellas haciendo uso de las coordenadas $(x, y)$ y $(x2, y2)$, de estas nos quedaremos con un desfase intermedio. Finalmente con el ángulo de cada imagen, corregimos el giro sobre la imagen original, tal y como se muestra en la \textbf{Fig. x}.
+	\textbf{3.} Finalmente con el algoritmo de Hough extraemos líneas presentes en la imagen, dando como resultado las rectas horizontales. En la \textbf{\hyperref[fig:imagewithlines]{Fig. 5}} se visualizan las rectas detectadas, y se calcula el angulo de cada uno de ellas haciendo uso de las coordenadas $(x, y)$ y $(x2, y2)$, de estas nos quedaremos con un desfase intermedio. Finalmente con el ángulo de cada imagen, corregimos el giro sobre la imagen original, tal y como se muestra en la \textbf{\hyperref[fig:00057co]{Fig. 6}}.
 	
 	\begin{figure}[h]
 		\centering
+		\caption{Imagen tras detectar lineas y ángulos de desfase}\vspace{0.5cm}
 		\includegraphics[width=0.6\linewidth]{img/image_with_lines+}
-		\caption{Imagen tras detectar lineas y ángulos de desfase}
 		\label{fig:imagewithlines}
 	\end{figure}
 	
 	\begin{figure}[h]
 		\centering
+		\caption{Corrección de angulo de imagen}\vspace{0.5cm}
 		\includegraphics[width=0.7\linewidth]{img/00057_co}
-		\caption{Corrección de angulo de imagen}
 		\label{fig:00057co}
 	\end{figure}
 	
@@ -188,12 +205,12 @@ La función va a iterar sobre la lista de imágenes y creará una copia de la im
 
 Las regiones detectadas en una imagen se guardaran en la variable llamada \textit{polygons}. Sobre esa lista iteraremos a continuación y para cada elemento de la lista aplicaremos la función \textit{convexHull} de \textit{openCV}, con la finalidad de hallar el casco convexo de un conjunto de puntos. Esto quiere decir que la usaremos para determinar el perímetro de la región que hemos detectado. Guardaremos estos perímetros en la lista \textit{hulls}, que usaremos más adelante para poder dibujar las regiones en la imagen. También guardamos la lista de regiones detectadas en \textit{detected\_regions} y finalmente dibujaremos las regiones sobre la copia de la imagen y la guardaremos en la lista que hemos creado al principio para ello. Por último mostramos la primera y última imagen con las regiones dibujadas y devolvemos las listas de las imágenes con las regiones dibujadas y la lista de las regiones detectadas.
 
-Tras ejecutar la función deberían aparecer las imágenes que podemos ver en la \textbf{Fig. x}
+Tras ejecutar la función deberían aparecer las imágenes que podemos ver en la \textbf{\hyperref[fig:imagenesMSER]{Fig. 7}}
 
 \begin{figure}[h]
 	\centering
+	\caption{Imagen tras aplicar MSER y dibujar las regiones detectadas}\vspace{0.5cm}
 	\includegraphics[width=0.6\linewidth]{img/ImagenesTrasMSER}
-	\caption{Imagen tras aplicar MSER y dibujar las regiones detectadas}
 	\label{fig:imagenesMSER}
 \end{figure}
 
@@ -211,11 +228,11 @@ Tras dibujar las regiones añadimos la imagen a la lista, imprimimos la primera 
 
 Al igual que en la región anterior, tenemos una celda de código comentado que podremos usar para poder ver el resultado en el resto de imágenes.
 
-Un ejemplo de los resultados que podemos ver en estas imágenes resultado lo vemos en la \textbf{Fig. x}
+Un ejemplo de los resultados que podemos ver en estas imágenes resultado lo vemos en la \textbf{\hyperref[fig:Rectangulos]{Fig. 8}}
 \begin{figure}[h]
 	\centering
+	\caption{Imagen tras dibujar un rectángulo en cada región detectada}\vspace{0.5cm}
 	\includegraphics[width=0.6\linewidth]{img/Rectangulos}
-	\caption{Imagen tras dibujar un rectángulo en cada región detectada}
 	\label{fig:Rectangulos}
 \end{figure}
 
@@ -243,11 +260,11 @@ Finalmente mostraremos la primera ya la última imagen ya que en estas vemos com
 
 Al igual que en los pasos anteriores tenemos una celda comentada para poder ver el resultado en el resto de imágenes. 
 
-Podemos ver el resultado sobre la \textbf{Fig. x} anterior y la \textbf{Fig. x} que tenemos a continuación.
+Podemos ver el resultado sobre la \textbf{\hyperref[fig:Rectangulos]{Fig. 8}} anterior y la \textbf{\hyperref[fig:RectangulosFiltrados]{Fig. 9}} que tenemos a continuación.
 \begin{figure}[h]
 	\centering
+	\caption{Imagen tras filtrar los rectángulos del paso anterior.}\vspace{0.5cm}
 	\includegraphics[width=0.6\linewidth]{img/RectangulosFiltrados}
-	\caption{Imagen tras filtrar los rectángulos del paso anterior.}
 	\label{fig:RectangulosFiltrados}
 \end{figure}
 
@@ -266,12 +283,12 @@ Al igual que hemos hecho en los pasos anteriores vamos a mostrar el resultado de
 
 Al igual que en los apartados anteriores podemos ver el resultado del resto de imágenes al ejecutar la celda de código siguiente. 
 
-Un ejemplo sería el que podemos ver en la \textbf{Fig. x}
+Un ejemplo sería el que podemos ver en la \textbf{\hyperref[fig:RectangulosFiltradosExtendidos]{Fig. 10}}
 
 \begin{figure}[h]
 	\centering
+	\caption{Imagen tras ampliar los rectángulos del paso anterior.}\vspace{0.5cm}
 	\includegraphics[width=0.6\linewidth]{img/RectangulosFiltradosExtendidos}
-	\caption{Imagen tras ampliar los rectángulos del paso anterior.}
 	\label{fig:RectangulosFiltradosExtendidos}
 \end{figure}
 
@@ -286,12 +303,12 @@ En la función \textit{detect\_subpanels} vamos a recibir las imágenes normaliz
 Finalmente la función va a devolver una lista de recortes de cada región detectada anteriormente, es decir las subregiones dentro de las regiones previas. Estos recortes son posibles subpaneles de las imágenes (\textit{possible\_subpanels}). También vamos a devolver las coordenadas de estas subregiones en la lista 
 \textit{subpanel\_coords}.
 
-En la \textbf{Fig. x} podemos ver las subregiones detectadas en este paso en la imagen 6.
+En la \textbf{\hyperref[fig:subregioness]{Fig. 11}} podemos ver las subregiones detectadas en este paso en la imagen 6.
 
 \begin{figure}[h]
 	\centering
+	\caption{Subpaneles detectados en la imagen 6.}\vspace{0.5cm}
 	\includegraphics[width=0.6\linewidth]{img/subregiones}
-	\caption{Subpaneles detectados en la imagen 6.}
 	\label{fig:subregioness}
 \end{figure}
 
@@ -307,34 +324,34 @@ Para esto tenemos la función \textit{fix\_coords} de manera similar a como lo h
 
 \begin{figure}[h]
 	\centering
+	\caption{Panel ideal.}\vspace{0.5cm}
 	\includegraphics[width=0.4\linewidth]{img/ideal_mask}
-	\caption{Panel ideal}
 	\label{fig:idealmask}
 \end{figure}
 
 Para la correcta comprobación de que si una imagen ya filtrada por color es un panel deseado, necesitamos un panel de referencia, para poder indicar como debería ser un panel detectado de forma aproximada.
 
 
-En la \textbf{Fig. 1} podemos ver la imagen de la que partimos para realizar esa mascara ideal que utilizaremos posteriormente. Esta imagen inicial se extrae de la Norma 8.1-IC de señalización vertical de carreteras en España \textbf{[1]}.
+En la  \textbf{\hyperref[fig:idealmask]{Fig. 12}} podemos ver la imagen de la que partimos para realizar esa mascara ideal que utilizaremos posteriormente. Esta imagen inicial se extrae de la Norma 8.1-IC de señalización vertical de carreteras en España \textbf{[1]}.
 
 Para poder crear la matriz de 1's (para azules) y 0's (para no azules) hacemos uso de un filtro de color. Antes de poder hacer uso del filtro de color necesitamos cambiar el formato de la imagen de \textbf{BGR} a \textbf{HSV}. Este cambio es fundamental porque en el espacio de color HSV, el componente Hue permite una separación clara del color azul, independientemente de las variaciones de iluminación y sombra. Esta conversión y filtrado mejoran significativamente el procesamiento y permiten realizar comparaciones directas con un panel de referencia, facilitando la verificación.
 
 \begin{figure}[h]
 	\centering
+	\caption{Panel ideal redimensionado y filtrado por color.}\vspace{0.5cm}
 	\includegraphics[width=0.9\linewidth]{img/ideal_mask_resized_and_filtered}
-	\caption{Panel ideal redimensionado y filtrado por color}
 	\label{fig:idealmaskresizedandfiltered}
 \end{figure}
 
-Ya que nos encontraremos con diferentes paneles de diferentes tamaños, establecemos una tamaño estandar de (80x40) a redimensionar para todos los paneles, tanto detectados como para el ideal. Tras aplicar esta redimensión podemos ya aplicar el filtro de color a nuestro panel, en la \textbf{Fig. 2} podemos ver el resultado de este proceso con el panel ideal.
+Ya que nos encontraremos con diferentes paneles de diferentes tamaños, establecemos una tamaño estandar de (80x40) a redimensionar para todos los paneles, tanto detectados como para el ideal. Tras aplicar esta redimensión podemos ya aplicar el filtro de color a nuestro panel, en la \textbf{\hyperref[fig:idealmaskresizedandfiltered]{Fig. 13}} podemos ver el resultado de este proceso con el panel ideal.
 \begin{figure}[h]
 	\centering
+	\caption{Panel detectado redimensionado y filtrado por color.}\vspace{0.5cm}
 	\includegraphics[width=0.7\linewidth]{img/sections}
-	\caption{Panel detectado redimensionado y filtrado por color}
 	\label{fig:sections}
 \end{figure}
 
-Respecto a los paneles detectados en la \textbf{Fig. 3} podemos ver un ejemplo de su proceso de redimensionado y filtrado por color. De esta manera ya podriamos realizar una comparación y correlación entre detectado/ideal.
+Respecto a los paneles detectados en la \textbf{\hyperref[fig:sections]{Fig. 14}} podemos ver un ejemplo de su proceso de redimensionado y filtrado por color. De esta manera ya podriamos realizar una comparación y correlación entre detectado/ideal.
 
 \subsubsection{Filtrado por correlación ideal/detectado}
 Llegados a este punto quedaría decidir que paneles recibidos son lo suficientemente parecidos al panel ideal. Para ellos realizamos:
@@ -364,39 +381,40 @@ Posterior a estos pasos nos quedarían las secciones más fiables a la detecció
 \subsection{Eliminación de regiones repetidas}
 Una vez hemos aplicado todo el proceso del detector y hemos detectado regiones en forma de cuadrados, es posible que tengamos un solapamiento de diversos rectángulos, unos encima de otros. Esto no sería lo óptimo ya que hemos detectado subpaneles, por lo que nunca tendríamos otros subpaneles dentro de estos. Lo mejor sería eliminar los paneles que están dentro de otros y que aporten poco con respecto al rectángulo en el que están contenidos.
 
-El algoritmo escogido es el NMS (Non-Maximum Suppression). Este algoritmo se encarga de eliminar regiones contenidas en otras que tienen una puntuación menor que la que tienen las otras regiones. Se basa en la Intersection over Union (IoU) que se calcula dividiendo la intersección de dos regiones entre la unión entre dos regiones. 
+El algoritmo escogido es el NMS (Non-Maximum Suppression). Este algoritmo se encarga de eliminar regiones contenidas en otras que tienen una puntuación menor que la que tienen las otras regiones. Se basa en la Intersection over Union (IoU) que se calcula dividiendo la intersección de dos regiones entre la unión entre dos regiones. Podemos ver un ejemplo gráfico en la \textbf{\hyperref[fig:iou]{Fig. 15}}
+
 \begin{figure}[h]
 	\centering
+	\caption{Cálculo del IoU.}\vspace{0.5cm}
 	\includegraphics[width=0.5\linewidth]{img/iou.png}
-	\caption{Cálculo del IoU}
 	\label{fig:iou}
 \end{figure}
 
 El valor obtenido se encuentra comprendido entre 0 y 1. Un valor de 1 quiere decir que las dos regiones están perfectamente solapadas y un valor de 0 quiere decir que son dos regiones que no se llegan a tocar nunca. 
 
-NMS itera sobre cada uno de los paneles detectados y calcula el IoU sobre esos dos paneles actuales iterados. Si el valor de IoU es mayor que 0 quiere decir que los dos subpaneles están superpuestos. Cuando haya detectado una superposición, entonces se evaluará las puntuaciones de las regiones. Estas puntuaciones las obtenemos en el último paso de la detección a través de la correlación. Escogeremos el panel que tenga mayor puntuación ya que es el panel que mejor se ajusta al panel ideal y eliminamos de la lista la región con menor puntuación. Este proceso se repetirá constantemente con cada uno de los paneles. El pseudocódigo del algoritmo es el siguiente:
+NMS itera sobre cada uno de los paneles detectados y calcula el IoU sobre esos dos paneles actuales iterados. Si el valor de IoU es mayor que 0 quiere decir que los dos subpaneles están superpuestos. Cuando haya detectado una superposición, entonces se evaluará las puntuaciones de las regiones. Estas puntuaciones las obtenemos en el último paso de la detección a través de la correlación. Escogeremos el panel que tenga mayor puntuación ya que es el panel que mejor se ajusta al panel ideal y eliminamos de la lista la región con menor puntuación. Este proceso se repetirá constantemente con cada uno de los paneles. El pseudocódigo del algoritmo se encuentra representado en la \textbf{\hyperref[fig:nms]{Fig. 16}}
 \begin{figure}[h]
 	\centering
+	\caption{Algoritmo NMS.}\vspace{0.5cm}
 	\includegraphics[width=0.7\linewidth]{img/nms.png}
-	\caption{Algoritmo NMS}
 	\label{fig:nms}
 \end{figure}
 
-Hemos introducido una pequeña modificación en código para evitar un problema que podíamos tener. El problema en cuestión es que es posible que en algunas ocasiones un panel detectado abarque un poco de región de otro, por lo que el algoritmo lo tomará en cuenta al tener un IoU mayor que 0 y eliminará una región de estas. Esto no es bueno ya que los dos carteles son independientes y no queremos eliminar ninguno de ellos, sino regiones dentro de estos. Para ello, definimos un umbral de IoU de 0.05. Si tenemos un IoU mayor que este umbral significará que tendremos que eliminar una de las regiones ya que es posible que se trate de una región dentro de otra. Así quedaría el algoritmo aplicado en una de las imágenes:
+Hemos introducido una pequeña modificación en código para evitar un problema que podíamos tener. El problema en cuestión es que es posible que en algunas ocasiones un panel detectado abarque un poco de región de otro, por lo que el algoritmo lo tomará en cuenta al tener un IoU mayor que 0 y eliminará una región de estas. Esto no es bueno ya que los dos carteles son independientes y no queremos eliminar ninguno de ellos, sino regiones dentro de estos. Para ello, definimos un umbral de IoU de 0.05. Si tenemos un IoU mayor que este umbral significará que tendremos que eliminar una de las regiones ya que es posible que se trate de una región dentro de otra. Así quedaría el algoritmo aplicado en una de las imágenes, como se muestra en la \textbf{\hyperref[fig:nmsAplicado]{Fig. 17}}
 \begin{figure}[h]
 	\centering
+	\caption{Algoritmo NMS aplicado sobre una imagen.}\vspace{0.5cm}
 	\includegraphics[width=1\linewidth]{img/nmsAplicado.png}
-	\caption{Algoritmo NMS aplicado sobre una imagen}
 	\label{fig:nmsAplicado}
 \end{figure}
 \subsection{Validación}
 Para finalizar, hemos agregado en una lista las 20 imágenes para nuestro conjunto de prueba. Son imágenes variadas donde hay imágenes con niebla, con más luz, sin carteles o con carteles pequeños, seleccionadas para comprobar la robustez del detector. Para obtener una mejor retroalimentación de la eficacia del detector, hemos anotado manualmente los paneles que realmente aparecen en la escena para luego compararlos con los paneles detectados. Para la anotación de los carteles hemos empleado la página web \href{https://roboflow.com/}{Roboflow} ya que permite anotar regiones de forma manual muy rápidamente. La información anotada se devolverá en un formato JSON donde aparecerán las coordenadas del punto de arriba a la izquierda y el ancho y el alto de cada uno de los rectángulos. El archivo donde se encuentra esta información es el llamado \textit{anotaciones.json}.
 
-Para evaluar la proximidad del cartel detectado con el real usaremos la métrica IoU. Para cada uno de los carteles detectados calcularemos el valor de IoU para cada uno de los carteles reales y nos quedaremos con el valor máximo de este. De este modo cada cartel tendrá su propio valor anotado. Hay que tener en cuenta que este valor puede ser bajo ya que los carteles reales los anotamos en la imagen original, es decir, sin rotarla. Los carteles detectados se encuentran ya en la imagen rotada y por eso el IoU puede resultar bajo. Para finalizar, representaremos los carteles detectados junto con el valor IoU:
+Para evaluar la proximidad del cartel detectado con el real usaremos la métrica IoU. Para cada uno de los carteles detectados calcularemos el valor de IoU para cada uno de los carteles reales y nos quedaremos con el valor máximo de este. De este modo cada cartel tendrá su propio valor anotado. Hay que tener en cuenta que este valor puede ser bajo ya que los carteles reales los anotamos en la imagen original, es decir, sin rotarla. Los carteles detectados se encuentran ya en la imagen rotada y por eso el IoU puede resultar bajo. Para finalizar, representaremos los carteles detectados junto con el valor IoU, en la \textbf{\hyperref[fig:cartelIoU]{Fig. 18}}
 \begin{figure}[h]
 	\centering
+	\caption{Cartel detectado con valor de confianza.}\vspace{0.5cm}
 	\includegraphics[width=0.7\linewidth]{img/cartelConIoU.png}
-	\caption{Cartel detectado con valor de confianza}
 	\label{fig:cartelIoU}
 \end{figure}
 
@@ -404,15 +422,22 @@ Para evaluar la proximidad del cartel detectado con el real usaremos la métrica
 
 %-------------------------------------------------------
 \section{Conclusiones y trabajos futuros}
-3 pag.
+Como conclusiones después de haber terminado este trabajo podemos decir que lo más complicado ha sido la parte de detectar los carteles con \textit{MSER}, siendo especialmente complicada la tarea, en aquellas imágenes que tenían bastante niebla o que había demasiada luz, haciendo que el color de los carteles fuese más difícil de detectar. 
+
+En la mayoría de los casos de test hemos podido comprobar que los resultados son buenos, incluso en aquellas imágenes en las que había niebla, o que estaban torcidas.
+
+Para mejorar estas detecciones se podría hacer usando un modelo de aprendizaje automático, ya que en general suelen dar mejores resultados que este tipo de algoritmos. 
+
 %-------------------------------------------------------
 \section{Referencias}
-[1] https://www.fomento.gob.es/az.bbmf.web/documentacion/pdf/re3723.pdf
+[1] \href{https://www.fomento.gob.es/az.bbmf.web/documentacion/pdf/re3723.pdf}{https://www.fomento.gob.es/az.bbmf.web/documentacion/pdf/re3723.pdf}
 
-[2] https://blog.roboflow.com/how-to-code-non-maximum-suppression-nms-in-plain-numpy/
+[2] \href{https://blog.roboflow.com/how-to-code-non-maximum-suppression-nms-in-plain-numpy/}{https://blog.roboflow.com/how-to-code-non-maximum-suppression-nms-in-plain-numpy/}
 
-[3] https://builtin.com/machine-learning/non-maximum-suppression
+[3] \href{https://builtin.com/machine-learning/non-maximum-suppression}{https://builtin.com/machine-learning/non-maximum-suppression}
 
-[4] https://roboflow.com/
+[4] \href{https://roboflow.com/}{https://roboflow.com/}
+
+[5] \href{https://github.com/adheeshc/Traffic-Sign-Recognition/blob/master/README.md}{https://github.com/adheeshc/Traffic-Sign-Recognition/blob/master/README.md}
 %-------------------------------------------------------
 \end{document}
