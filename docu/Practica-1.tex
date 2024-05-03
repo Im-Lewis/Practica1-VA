@@ -278,6 +278,50 @@ Este es el último paso antes de pasar a la correlación de mascaras. En este pa
 
 Para esto tenemos la función \textit{fix\_coords} de manera similar a como lo hemos ido haciendo anteriormente obtendremos las coordenadas de cada posible subpanel detectado en cada una de las imágenes. Una vez tenemos las coordenadas las ajustamos y las volvemos a guardar en una lista que vamos a devolver. 
 
+<<<<<<< HEAD
+=======
+Otro de los problemas presentes a la hora de procesar las imagenes, para su detección, es la posición de los objetos a detectar. En ocasiones, ya sea por el ángulo de la cámara o la misma posición del cartel respeto a nosotros, puede ocurrir un cierto desfase en el angulo deseado. En la \textbf{Fig. 1} podemos observar un pequeño ejemplo del problema inicial y el resultado deseado, que nos dará una mejor detección de las secciones. Para poder abarcar el problema hemos optado por realizar una corrección a la imagen completa. 
+
+Los pasos a seguir para conseguir el angulo de desfase son los siguientes:
+
+
+
+\begin{quote}
+	\textbf{1.} Aplicamos una detección de color azul ya que respecto a las diferentes pruebas, ha dado mejores resultados para eliminar las zonas no deseadas y poder centrarnos en las secciones más azules (los paneles deseados.) En la \textbf{Fig. x} podemos ver un ejemplo de los posibles resultados.
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.6\linewidth]{img/image_blue_f}
+		\caption{Imagen tras aplicar filtro azul}
+		\label{fig:imagebluef}
+	\end{figure}
+	
+	\textbf{2.} Realizamos una detección de bordes horizontales. Ya que haremos la corrección en función de como estén estos orientados. En la \textbf{Fig. x} se ve que conseguimos las secciones deseadas.
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.6\linewidth]{img/image_boder_h}
+		\caption{Imagen tras aplicar sobel}
+		\label{fig:imageboderh}
+	\end{figure}
+	\textbf{3.} Finalmente con el algoritmo de Hough extraemos líneas presentes en la imagen, dando como resultado las rectas horizontales. En la \textbf{Fig. x} se visualizan las rectas detectadas, y se calcula el angulo de cada uno de ellas haciendo uso de las coordenadas $(x, y)$ y $(x2, y2)$, de estas nos quedaremos con un desfase intermedio. Finalmente con el ángulo de cada imagen, corregimos el giro sobre la imagen original, tal y como se muestra en la \textbf{Fig. x}.
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.6\linewidth]{img/image_with_lines+}
+		\caption{Imagen tras detectar lineas y ángulos de desfase}
+		\label{fig:imagewithlines}
+	\end{figure}
+	
+	\begin{figure}[h]
+		\centering
+		\includegraphics[width=0.7\linewidth]{img/00057_co}
+		\caption{Corrección de angulo de imagen}
+		\label{fig:00057co}
+	\end{figure}
+	
+\end{quote}
+\subsection{MSER}
+>>>>>>> 1aad60e6e7909341ecad4745adc343694a52b197
 
 \subsection{Correlación por máscaras}
 \subsubsection{Mascara ideal}
