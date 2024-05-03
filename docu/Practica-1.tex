@@ -9,6 +9,7 @@
 \usepackage{graphicx} % Required for inserting images
 \usepackage{amsmath}
 \usepackage{titlesec} % Paquete para el formato de los títulos
+\usepackage{hyperref}
 
 \setlength{\parindent}{0pt}
 
@@ -100,7 +101,28 @@
 
 \section{Creación de la aplicación}
 \subsection{Normalización}
+Una misma imagen tomada en el mismo lugar variará en función de diversos factores como puede ser la luz, climatología, orientación de la cámara y otros muchos factores. En nuestro caso, el mayor problema con el que nos encontramos es con la niebla y los paneles rotados. Al haber nieble en la escena es posible que nos encontremos con una imagen mucha menos nítida y menos saturada. En cuanto a la orientación al tener un cuadrado recto de la detección que no podemos rotar, es posible que tengamos problemas para posicionarlo. A continuación se explicarán los métodos usados para evitar este ruido adverso.
 \subsubsection{Corrección de color}
+Uno de los problemas con los que se puede enfrentar el detector es la iluminación de la escena, en concreto con la iluminación producida por la niebla. Cuando hay niebla se pierde nitidez y saturación en la escena. Objetos que se encuentran un tanto alejados desde la posición desde donde tomamos las fotos van a visualizarse de forma borrosa y sin mucha claridad. Este es un problema para el detector ya que para las imagénes donde aparecía niebla el detector no era capaz de detectar ningún panel.
+Para ello, aplicamos la siguiente fórmula sencilla para obtener la saturación para un imagen:
+	\begin{equation}
+		S = \frac{\sum_{i=0}^p s(i)}{p}
+	\end{equation}
+Donde:
+\begin{itemize}
+    \item $S$ = índice de saturación de la imagen
+    \item $p$ = número de píxeles totales de la imagen
+    \item $s$ = saturación del píxel i
+\end{itemize}
+Para obtener la saturación de cada píxel, la imagen es transformada al formato HSV. Este formato tiene tres componentes distintas: matiz, saturación y valor. En nuestro caso tendremoss en cuenta la saturación ya que es la componente que más diferencia hay entre una imagen normal y una con niebla.
+
+Después de obtener esta media de saturación para cada imagen, establecemos un umbral, donde si una imagen no supera ese umbral entonces tendremos que aplicarle un filtro de aumento de saturación. Después de ejecutar este algoritmo observamos que la mayoría de imágenes con niebla no eran capaces de superar el umbral de 27, por lo que ese umbral es el establecido. Las demás imágenes sin niebla no pasarán por este filtro. El filtro en cuestión consiste en tomar la saturación de los píxeles y multiplicarlos por 3, para obtener así una imagen mucho más saturada. Así quedaría el proceso de normalización del color, pasando una imagen con niebla a una mucho más saturada:
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.8\linewidth]{img/saturated_img.png}
+	\caption{Imagen con niebla saturada}
+	\label{fig:saturada}
+\end{figure}
 \subsubsection{Corrección de ángulo}
 \begin{figure}[h]
 	\centering
@@ -340,10 +362,44 @@ Llegados a este punto quedaría decidir que paneles recibidos son lo suficientem
 
 Posterior a estos pasos nos quedarían las secciones más fiables a la detección deseada, pero nos quedaría eliminar posibles detecciones repetidas.
 \subsection{Eliminación de regiones repetidas}
+Una vez hemos aplicado todo el proceso del detector y hemos detectado regiones en forma de cuadrados, es posible que tengamos un solapamiento de diversos rectángulos, unos encima de otros. Esto no sería lo óptimo ya que hemos detectado subpaneles, por lo que nunca tendríamos otros subpaneles dentro de estos. Lo mejor sería eliminar los paneles que están dentro de otros y que aporten poco con respecto al rectángulo en el que están contenidos.
 
+El algoritmo escogido es el NMS (Non-Maximum Suppression). Este algoritmo se encarga de eliminar regiones contenidas en otras que tienen una puntuación menor que la que tienen las otras regiones. Se basa en la Intersection over Union (IoU) que se calcula dividiendo la intersección de dos regiones entre la unión entre dos regiones. 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.5\linewidth]{img/iou.png}
+	\caption{Cálculo del IoU}
+	\label{fig:iou}
+\end{figure}
+
+El valor obtenido se encuentra comprendido entre 0 y 1. Un valor de 1 quiere decir que las dos regiones están perfectamente solapadas y un valor de 0 quiere decir que son dos regiones que no se llegan a tocar nunca. 
+
+NMS itera sobre cada uno de los paneles detectados y calcula el IoU sobre esos dos paneles actuales iterados. Si el valor de IoU es mayor que 0 quiere decir que los dos subpaneles están superpuestos. Cuando haya detectado una superposición, entonces se evaluará las puntuaciones de las regiones. Estas puntuaciones las obtenemos en el último paso de la detección a través de la correlación. Escogeremos el panel que tenga mayor puntuación ya que es el panel que mejor se ajusta al panel ideal y eliminamos de la lista la región con menor puntuación. Este proceso se repetirá constantemente con cada uno de los paneles. El pseudocódigo del algoritmo es el siguiente:
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/nms.png}
+	\caption{Algoritmo NMS}
+	\label{fig:nms}
+\end{figure}
+
+Hemos introducido una pequeña modificación en código para evitar un problema que podíamos tener. El problema en cuestión es que es posible que en algunas ocasiones un panel detectado abarque un poco de región de otro, por lo que el algoritmo lo tomará en cuenta al tener un IoU mayor que 0 y eliminará una región de estas. Esto no es bueno ya que los dos carteles son independientes y no queremos eliminar ninguno de ellos, sino regiones dentro de estos. Para ello, definimos un umbral de IoU de 0.05. Si tenemos un IoU mayor que este umbral significará que tendremos que eliminar una de las regiones ya que es posible que se trate de una región dentro de otra. Así quedaría el algoritmo aplicado en una de las imágenes:
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=1\linewidth]{img/nmsAplicado.png}
+	\caption{Algoritmo NMS aplicado sobre una imagen}
+	\label{fig:nmsAplicado}
+\end{figure}
 \subsection{Validación}
+Para finalizar, hemos agregado en una lista las 20 imágenes para nuestro conjunto de prueba. Son imágenes variadas donde hay imágenes con niebla, con más luz, sin carteles o con carteles pequeños, seleccionadas para comprobar la robustez del detector. Para obtener una mejor retroalimentación de la eficacia del detector, hemos anotado manualmente los paneles que realmente aparecen en la escena para luego compararlos con los paneles detectados. Para la anotación de los carteles hemos empleado la página web \href{https://roboflow.com/}{Roboflow} ya que permite anotar regiones de forma manual muy rápidamente. La información anotada se devolverá en un formato JSON donde aparecerán las coordenadas del punto de arriba a la izquierda y el ancho y el alto de cada uno de los rectángulos. El archivo donde se encuentra esta información es el llamado \textit{anotaciones.json}.
 
-\subsection{...}
+Para evaluar la proximidad del cartel detectado con el real usaremos la métrica IoU. Para cada uno de los carteles detectados calcularemos el valor de IoU para cada uno de los carteles reales y nos quedaremos con el valor máximo de este. De este modo cada cartel tendrá su propio valor anotado. Hay que tener en cuenta que este valor puede ser bajo ya que los carteles reales los anotamos en la imagen original, es decir, sin rotarla. Los carteles detectados se encuentran ya en la imagen rotada y por eso el IoU puede resultar bajo. Para finalizar, representaremos los carteles detectados junto con el valor IoU:
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=0.7\linewidth]{img/cartelConIoU.png}
+	\caption{Cartel detectado con valor de confianza}
+	\label{fig:cartelIoU}
+\end{figure}
+
 
 
 %-------------------------------------------------------
@@ -352,5 +408,11 @@ Posterior a estos pasos nos quedarían las secciones más fiables a la detecció
 %-------------------------------------------------------
 \section{Referencias}
 [1] https://www.fomento.gob.es/az.bbmf.web/documentacion/pdf/re3723.pdf
+
+[2] https://blog.roboflow.com/how-to-code-non-maximum-suppression-nms-in-plain-numpy/
+
+[3] https://builtin.com/machine-learning/non-maximum-suppression
+
+[4] https://roboflow.com/
 %-------------------------------------------------------
 \end{document}
